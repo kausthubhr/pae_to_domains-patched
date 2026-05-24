@@ -6,6 +6,8 @@ Github: https://github.com/tristanic/pae_to_domains<br />
 Modified by OMG
 """
 
+import random
+
 import igraph
 import numpy as np
 import networkx as nx
@@ -188,11 +190,17 @@ def domains_from_pae_matrix_igraph(
     g.add_edges(edges)
     g.es['weight']=sel_weights
 
+    # igraph 1.0.0's `community_leiden` does not accept a `seed=` kwarg
+    # and its underlying C-level RNG is not seedable from Python directly.
+    # The workaround is to install a Python `random.Random(seed)` as
+    # igraph's RNG before the call — community_leiden then calls back
+    # into Python for its random numbers, giving deterministic output
+    # for a given seed. See docs/IGRAPH_DETERMINISM_NOTE.md.
+    igraph.set_random_number_generator(random.Random(random_seed))
     vc = g.community_leiden(
         weights='weight',
         resolution_parameter=graph_resolution/100,
         n_iterations=-1,
-        seed=random_seed,
     )
 
     membership = np.array(vc.membership)
