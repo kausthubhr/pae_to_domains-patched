@@ -135,6 +135,7 @@ def domains_from_pae_matrix_igraph(
     pae_power: int = 1,
     pae_cutoff: float = 5.0,
     graph_resolution:float = 1,
+    random_seed: int = 1,
 ) -> list[list[int]]:
     """
     Takes a predicted aligned error (PAE) matrix representing the predicted
@@ -165,6 +166,11 @@ def domains_from_pae_matrix_igraph(
         > `graph_resolution` should be larger than zero, and values larger than 5
         > are unlikely to be useful.
 
+    - **random_seed (int, optional)**:<br />
+        Seed forwarded to igraph's Leiden algorithm. Without this, the
+        algorithm's internal RNG is unseeded and community boundaries
+        (and downstream interface-level metrics) vary between runs.
+
     Returns:
 
     - **clusters (list)**:<br />
@@ -185,7 +191,8 @@ def domains_from_pae_matrix_igraph(
     vc = g.community_leiden(
         weights='weight',
         resolution_parameter=graph_resolution/100,
-        n_iterations=-1
+        n_iterations=-1,
+        seed=random_seed,
     )
 
     membership = np.array(vc.membership)
